@@ -10,14 +10,14 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --purple:#5B4FCF;--purple2:#3C3489;--purple3:#7B6FE8;
-  --bg:#faf9f6;--bg2:#f0eefc;--bg3:#e5e2f8;
-  --card:#fff;--border:#ddd9ce;--border2:rgba(91,79,207,0.25);
+  --purple:#5B4FCF;--purple2:#3C3489;--purple3:#7B6FE8;--purple-dark:#1a1720;
+  --bg:#faf9f6;--bg2:#f0eee8;--bg3:#e4e2d8;
+  --card:#fff;--border:#e4e2d8;--border2:rgba(91,79,207,0.25);
   --text1:#1a1a1a;--text2:#5a5470;--text3:#9490b0;
   --accent:#5B4FCF;--accent2:#0C447C;--accent3:#BA7517;--accent4:#E24B4A;--accent5:#639922;
   --font-mono:'IBM Plex Mono',monospace;--font-display:'Syne',sans-serif;
 }
-body{font-family:var(--font-display);background:var(--bg);color:var(--text1)}
+body{font-family:var(--font-display);background:#faf9f6;color:var(--text1)}
 #app{min-height:100vh;display:flex;flex-direction:column}
 .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 .topbar-brand{display:flex;align-items:center;gap:10px}
@@ -645,9 +645,9 @@ select{width:auto}
           <div class="card-title"><i class="ti ti-chart-bar"></i>Framework Breakdown</div>
           <div id="rep-breakdown" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
-        <div class="card" style="background:#EEEDFE;border-color:#d0cdfa">
-          <div class="card-title" style="color:var(--purple2)"><i class="ti ti-printer" style="color:var(--purple)"></i>Export Instructions</div>
-          <p style="font-size:12px;color:var(--purple2);line-height:1.6">Use <strong>Ctrl/Cmd+P → Save as PDF</strong> to export this report for your board of directors, independent auditors, church liability insurer, or state regulators. Complete all checklist items first for a fully documented readiness report.</p>
+        <div class="card" style="background:#1a1720;border-color:#2d2940">
+          <div class="card-title" style="color:#a89be8"><i class="ti ti-printer" style="color:#7B6FE8"></i>Export Instructions</div>
+          <p style="font-size:12px;color:#a89be8;line-height:1.6">Use <strong style="color:#fff">Ctrl/Cmd+P → Save as PDF</strong> to export this report for your board of directors, independent auditors, church liability insurer, or state regulators. Complete all checklist items first for a fully documented readiness report.</p>
         </div>
       </div>
 
