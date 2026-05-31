@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Shepherd GRC — Church & Nonprofit Compliance Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#5B4FCF;--purple2:#3C3489;--purple3:#7B6FE8;
+  --bg:#faf9f6;--bg2:#f0eefc;--bg3:#e5e2f8;
+  --card:#fff;--border:#ddd9ce;--border2:rgba(91,79,207,0.25);
+  --text1:#1a1a1a;--text2:#5a5470;--text3:#9490b0;
+  --accent:#5B4FCF;--accent2:#0C447C;--accent3:#BA7517;--accent4:#E24B4A;--accent5:#639922;
+  --font-mono:'IBM Plex Mono',monospace;--font-display:'Syne',sans-serif;
+}
+body{font-family:var(--font-display);background:var(--bg);color:var(--text1)}
+#app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:30px;height:30px;background:#EEEDFE;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.brand-name{font-size:15px;font-weight:700;color:var(--purple)}
+.brand-sub{font-size:10px;font-family:var(--font-mono);color:var(--purple3);letter-spacing:1px;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.status-badge{background:rgba(91,79,207,0.1);border:1px solid rgba(91,79,207,0.25);color:var(--purple);font-size:10px;font-family:var(--font-mono);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
+.main-layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:210px;background:var(--card);border-right:1px solid var(--border);flex-shrink:0;overflow-y:auto;padding:12px 0}
+.nav-section{padding:0 14px 6px;font-size:9px;font-family:var(--font-mono);color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:10px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text2);border-left:2px solid transparent;transition:all .15s;margin-bottom:1px}
+.nav-item:hover{background:var(--bg2);color:var(--text1)}
+.nav-item.active{background:#EEEDFE;color:var(--purple);border-left-color:var(--purple);font-weight:500}
+.nav-item i{font-size:15px;width:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:rgba(226,75,74,0.15);color:#c0302f;font-size:9px;font-family:var(--font-mono);padding:1px 5px;border-radius:3px}
+.content{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.page{display:none}.page.active{display:flex;flex-direction:column;gap:16px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
+.page-title{font-size:20px;font-weight:700;color:var(--text1);letter-spacing:-.5px}
+.page-sub{font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--font-mono)}
+.btn{background:rgba(91,79,207,0.08);border:1px solid rgba(91,79,207,0.25);color:var(--purple);font-size:12px;font-family:var(--font-mono);padding:7px 14px;border-radius:6px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:rgba(91,79,207,0.15);border-color:var(--purple)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-green{background:rgba(99,153,34,0.08);border-color:rgba(99,153,34,0.25);color:#4a7a10}
+.btn-green:hover{background:rgba(99,153,34,0.15)}
+.btn-warn{background:rgba(186,117,23,0.08);border-color:rgba(186,117,23,0.25);color:#8a5510}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.metric-label{font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.metric-value{font-size:26px;font-weight:700;letter-spacing:-1px;line-height:1}
+.metric-delta{font-size:10px;font-family:var(--font-mono);margin-top:4px}
+.delta-up{color:#27500A}.delta-warn{color:#633806}.delta-down{color:#791F1F}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card-title{font-size:13px;font-weight:600;color:var(--text1);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-title i{font-size:16px;color:var(--accent)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.framework-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fw-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.fw-card:hover{border-color:var(--purple);transform:translateY(-1px);box-shadow:0 4px 12px rgba(91,79,207,0.1)}
+.fw-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.fw-card.tier-critical::before{background:#E24B4A}
+.fw-card.tier-high::before{background:#BA7517}
+.fw-card.tier-medium::before{background:var(--purple)}
+.fw-card.tier-standard::before{background:var(--text3)}
+.fw-name{font-size:12px;font-weight:600;color:var(--text1);margin-bottom:3px}
+.fw-desc{font-size:10px;color:var(--text2);line-height:1.4;margin-bottom:8px}
+.fw-footer{display:flex;align-items:center;justify-content:space-between}
+.score-bar-wrap{flex:1;margin-right:8px}
+.score-bar-bg{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.score-pct{font-size:11px;font-family:var(--font-mono);font-weight:500}
+.tier-badge{font-size:9px;font-family:var(--font-mono);padding:2px 6px;border-radius:3px;letter-spacing:.5px;text-transform:uppercase}
+.tier-critical{background:rgba(226,75,74,0.12);color:#c0302f;border:1px solid rgba(226,75,74,0.2)}
+.tier-high{background:rgba(186,117,23,0.12);color:#8a5510;border:1px solid rgba(186,117,23,0.2)}
+.tier-medium{background:rgba(91,79,207,0.1);color:var(--purple2);border:1px solid rgba(91,79,207,0.2)}
+.tier-standard{background:rgba(148,144,176,0.15);color:var(--text2);border:1px solid rgba(148,144,176,0.2)}
+.chat-area{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;min-height:400px;max-height:540px}
+.chat-toolbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.fw-selector{background:var(--card);border:1px solid var(--border);color:var(--text1);font-size:12px;font-family:var(--font-mono);padding:5px 10px;border-radius:6px;outline:none;cursor:pointer;width:auto}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:10px;max-width:90%}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg-avatar{width:28px;height:28px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.msg-avatar.ai{background:linear-gradient(135deg,var(--purple),#0C447C);color:#fff}
+.msg-avatar.user-av{background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
+.msg-bubble{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.6;color:var(--text1)}
+.msg.user .msg-bubble{background:rgba(91,79,207,0.07);border-color:rgba(91,79,207,0.2)}
+.msg-bubble .fw-tag{display:inline-block;background:rgba(91,79,207,0.1);border:1px solid rgba(91,79,207,0.25);color:var(--purple);font-size:10px;font-family:var(--font-mono);padding:1px 6px;border-radius:3px;margin-bottom:6px}
+.msg-meta{font-size:10px;font-family:var(--font-mono);color:var(--text3);margin-top:4px}
+.thinking{display:flex;gap:4px;padding:12px 16px;align-items:center}
+.thinking span{width:6px;height:6px;border-radius:50%;background:var(--purple);opacity:.4;animation:pulse 1.2s ease-in-out infinite}
+.thinking span:nth-child(2){animation-delay:.2s}.thinking span:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.4;transform:scale(1)}40%{opacity:1;transform:scale(1.3)}}
+.quick-chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 8px}
+.chip{background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-size:11px;font-family:var(--font-mono);padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--purple);color:var(--purple)}
+.chat-input-area{border-top:1px solid var(--border);padding:12px 14px;display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text1);font-size:13px;font-family:var(--font-display);padding:9px 12px;border-radius:8px;outline:none;resize:none;min-height:38px;max-height:80px;line-height:1.5}
+.chat-input:focus{border-color:rgba(91,79,207,0.4)}
+.send-btn{background:var(--purple);border:none;color:#fff;width:38px;height:38px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;flex-shrink:0}
+.send-btn:hover{background:var(--purple3);transform:scale(1.05)}
+.gap-table{width:100%;border-collapse:collapse;font-size:12px}
+.gap-table th{text-align:left;font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--border)}
+.gap-table td{padding:9px 12px;border-bottom:1px solid var(--bg3);color:var(--text2);vertical-align:middle}
+.gap-table tr:last-child td{border-bottom:none}
+.gap-table tr:hover td{background:var(--bg2)}
+.risk-pill{font-size:10px;font-family:var(--font-mono);padding:2px 8px;border-radius:3px;font-weight:500;display:inline-block}
+.risk-critical{background:rgba(226,75,74,0.12);color:#c0302f}
+.risk-high{background:rgba(186,117,23,0.12);color:#8a5510}
+.risk-medium{background:rgba(91,79,207,0.1);color:var(--purple)}
+.risk-low{background:rgba(99,153,34,0.1);color:#4a7a10}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot-red{background:#E24B4A}.dot-yellow{background:#BA7517}.dot-green{background:#639922}.dot-gray{background:var(--text3)}
+.timeline-item{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--bg3)}
+.timeline-item:last-child{border-bottom:none}
+.tl-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.tl-body{flex:1}.tl-title{font-size:12px;color:var(--text1);font-weight:500}.tl-meta{font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:2px}
+.progress-row{margin-bottom:10px}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.progress-label span:first-child{color:var(--text2)}.progress-label span:last-child{font-family:var(--font-mono);color:var(--text3)}
+.progress-track{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px}
+.doc-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--bg3)}
+.doc-row:last-child{border-bottom:none}.doc-row:hover{background:var(--bg2)}
+.doc-icon{font-size:20px;color:var(--accent)}
+.doc-name{font-size:12px;color:var(--text1);font-weight:500}.doc-meta{font-size:10px;color:var(--text3);font-family:var(--font-mono)}
+.doc-action{margin-left:auto}
+.alert-item{display:flex;gap:10px;padding:10px 12px;border-radius:6px;margin-bottom:6px;font-size:12px}
+.alert-critical{background:rgba(226,75,74,0.07);border-left:2px solid #E24B4A}
+.alert-warn{background:rgba(186,117,23,0.07);border-left:2px solid #BA7517}
+.alert-info{background:rgba(91,79,207,0.06);border-left:2px solid var(--purple)}
+.alert-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.alert-text{color:var(--text2);line-height:1.5}.alert-text strong{color:var(--text1)}
+.ring-wrap{position:relative;width:80px;height:80px;margin:0 auto 8px}
+.ring-wrap svg{width:80px;height:80px}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.ring-pct{font-size:16px;font-weight:700;font-family:var(--font-mono)}
+.ring-lbl{font-size:9px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.5px}
+.scrollable{overflow-y:auto;max-height:340px}
+.cl-sidebar{display:flex;flex-direction:column;gap:5px;width:200px;flex-shrink:0}
+.cl-area-card{background:var(--card);border:0.5px solid transparent;border-radius:8px;padding:9px 11px;cursor:pointer}
+.cl-area-card.active{border-color:var(--border);box-shadow:0 1px 4px rgba(91,79,207,0.08)}
+.cl-area-card:hover{background:var(--bg2)}
+input,select,textarea{font-family:inherit;outline:none;font-size:12px;padding:7px 10px;border-radius:6px;border:0.5px solid var(--border);background:var(--card);color:var(--text1);width:100%}
+select{width:auto}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-icon"><i class="ti ti-building-church" style="font-size:16px;color:#5B4FCF"></i></div>
+      <div>
+        <div class="brand-name">Shepherd GRC</div>
+        <div class="brand-sub">Church & Nonprofit Compliance</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="status-badge">● 5 frameworks active</span>
+      <span style="font-size:11px;font-family:var(--font-mono);color:var(--text3)">Board Secretary · Admin</span>
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <div class="sidebar">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="showPage('dashboard')"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+      <div class="nav-item" onclick="showPage('frameworks')"><i class="ti ti-books"></i>Frameworks</div>
+      <div class="nav-item" onclick="showPage('assistant')"><i class="ti ti-message-chatbot"></i>AI Advisor<span class="nav-badge">AI</span></div>
+      <div class="nav-item" onclick="showPage('checklist')"><i class="ti ti-checklist"></i>Audit Checklist</div>
+      <div class="nav-item" onclick="showPage('gaps')"><i class="ti ti-list-check"></i>Gap Analysis<span class="nav-badge" id="gap-badge">—</span></div>
+      <div class="nav-item" onclick="showPage('docs')"><i class="ti ti-file-text"></i>Documents</div>
+
+      <div class="nav-section">Monitoring</div>
+      <div class="nav-item" onclick="showPage('alerts')"><i class="ti ti-bell"></i>Alerts<span class="nav-badge">3</span></div>
+      <div class="nav-item" onclick="showPage('reporting')"><i class="ti ti-chart-bar"></i>Reporting</div>
+
+      <div class="nav-section">Quick Access</div>
+      <div class="nav-item" onclick="showPage('assistant');setFw('IRS 501(c)(3) Compliance')"><i class="ti ti-building-bank" style="font-size:13px"></i><span style="font-size:11px">IRS 501(c)(3)</span></div>
+      <div class="nav-item" onclick="showPage('assistant');setFw('Child Safety & Protection')"><i class="ti ti-user-shield" style="font-size:13px"></i><span style="font-size:11px">Child Safety</span></div>
+      <div class="nav-item" onclick="showPage('assistant');setFw('Financial Controls')"><i class="ti ti-coins" style="font-size:13px"></i><span style="font-size:11px">Financial Controls</span></div>
+      <div class="nav-item" onclick="showPage('assistant');setFw('Donor Privacy & Data')"><i class="ti ti-heart" style="font-size:13px"></i><span style="font-size:11px">Donor Privacy</span></div>
+      <div class="nav-item" onclick="showPage('assistant');setFw('State Charity Registration')"><i class="ti ti-map-pin" style="font-size:13px"></i><span style="font-size:11px">Charity Registration</span></div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Compliance Overview</div>
+            <div class="page-sub">Last updated: today · 5 regulatory frameworks</div>
+          </div>
+          <button class="btn" onclick="sendPrompt('Run a comprehensive nonprofit compliance assessment across all active frameworks — IRS 501(c)(3), Child Safety, Financial Controls (COSO), Donor Privacy, and State Charity Registration. Identify critical gaps and prioritize by audit risk and liability exposure.')"><i class="ti ti-refresh"></i>Run Assessment ↗</button>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">Overall Readiness</div>
+            <div class="metric-value" id="dash-score" style="color:#BA7517">0%</div>
+            <div class="metric-delta delta-warn" id="dash-readiness">Not started</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Controls Complete</div>
+            <div class="metric-value" id="dash-complete" style="color:#27500A">0</div>
+            <div class="metric-delta delta-up" id="dash-total">of 30 total</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Open Gaps</div>
+            <div class="metric-value" id="dash-gaps" style="color:#791F1F">30</div>
+            <div class="metric-delta delta-down">require remediation</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Audit Target</div>
+            <div class="metric-value" style="color:var(--purple);font-size:18px" id="dash-date">—</div>
+            <div class="metric-delta delta-warn">target date</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-alert-triangle"></i>Critical Action Items</div>
+            <div class="timeline-item">
+              <div class="tl-dot dot-red"></div>
+              <div class="tl-body">
+                <div class="tl-title">Background checks not completed for all volunteers with minor contact</div>
+                <div class="tl-meta">Child Safety · Liability & legal exposure · Immediate action required</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="tl-dot dot-red"></div>
+              <div class="tl-body">
+                <div class="tl-title">Two-adult rule not enforced in children's ministry settings</div>
+                <div class="tl-meta">Child Safety · Policy gap · Abuse prevention standard</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="tl-dot dot-red"></div>
+              <div class="tl-body">
+                <div class="tl-title">Segregation of duties — single person controls full cash cycle</div>
+                <div class="tl-meta">Financial Controls · COSO · Fraud risk</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="tl-dot dot-yellow"></div>
+              <div class="tl-body">
+                <div class="tl-title">Form 990 filing deadline approaching</div>
+                <div class="tl-meta">IRS 501(c)(3) · Automatic revocation risk if missed</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="tl-dot dot-yellow"></div>
+              <div class="tl-body">
+                <div class="tl-title">Charitable solicitation registrations not current in all applicable states</div>
+                <div class="tl-meta">State Charity Registration · Fundraising compliance</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-chart-donut"></i>Framework Health</div>
+            <div id="dash-framework-health">
+              <div class="progress-row"><div class="progress-label"><span>IRS 501(c)(3) Compliance</span><span id="ph-irs">0%</span></div><div class="progress-track"><div class="progress-fill" id="pf-irs" style="width:0%;background:#E24B4A"></div></div></div>
+              <div class="progress-row"><div class="progress-label"><span>Child Safety & Protection</span><span id="ph-child">0%</span></div><div class="progress-track"><div class="progress-fill" id="pf-child" style="width:0%;background:#E24B4A"></div></div></div>
+              <div class="progress-row"><div class="progress-label"><span>Financial Controls (COSO)</span><span id="ph-financial">0%</span></div><div class="progress-track"><div class="progress-fill" id="pf-financial" style="width:0%;background:#E24B4A"></div></div></div>
+              <div class="progress-row"><div class="progress-label"><span>Donor Privacy & Data</span><span id="ph-donor">0%</span></div><div class="progress-track"><div class="progress-fill" id="pf-donor" style="width:0%;background:#E24B4A"></div></div></div>
+              <div class="progress-row"><div class="progress-label"><span>State Charity Registration</span><span id="ph-charity">0%</span></div><div class="progress-track"><div class="progress-fill" id="pf-charity" style="width:0%;background:#E24B4A"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-activity"></i>Recent Regulatory Activity</div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-red"></div>
+            <div class="tl-body">
+              <div class="tl-title">IRS — Increase in 501(c)(3) revocations for late Form 990 filings</div>
+              <div class="tl-meta">2026 · Automatic revocation after 3 consecutive missed filings · No grace period</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-red"></div>
+            <div class="tl-body">
+              <div class="tl-title">Multi-state AG enforcement — unregistered online fundraising campaigns</div>
+              <div class="tl-meta">2025–2026 · Digital fundraising now triggers registration in solicitation states</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-yellow"></div>
+            <div class="tl-body">
+              <div class="tl-title">New child protection legislation — enhanced background check standards in 12 states</div>
+              <div class="tl-meta">2025 · National Sex Offender Registry checks now required in many jurisdictions</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-green"></div>
+            <div class="tl-body">
+              <div class="tl-title">Cyber liability insurance — nonprofits now required to demonstrate donor data controls</div>
+              <div class="tl-meta">2026 · Encryption and access controls now required for coverage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRAMEWORKS -->
+      <div class="page" id="page-frameworks">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Compliance Framework Library</div>
+            <div class="page-sub">5 active frameworks · Click any card to open AI Advisor</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-building-bank"></i>IRS & Tax Exemption</div>
+          <div class="framework-grid">
+            <div class="fw-card tier-critical" onclick="openFw('IRS 501(c)(3) Compliance','Walk me through the key IRS 501(c)(3) compliance requirements — Form 990, conflict of interest, private inurement, political activity limits, and public disclosure.')">
+              <div class="fw-name">IRS 501(c)(3) Compliance</div>
+              <div class="fw-desc">Annual 990 filing, conflict of interest, exempt purpose, board governance, public disclosure</div>
+              <div class="fw-footer"><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" id="fw-bar-irs" style="width:0%;background:#E24B4A"></div></div></div><span class="score-pct" id="fw-pct-irs" style="color:#E24B4A">0%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-user-shield"></i>Child Safety</div>
+          <div class="framework-grid">
+            <div class="fw-card tier-critical" onclick="openFw('Child Safety and Protection','What are the essential child safety and protection requirements for a church or nonprofit? Walk me through background checks, two-adult rule, mandatory reporting, and policy requirements.')">
+              <div class="fw-name">Child Safety & Protection</div>
+              <div class="fw-desc">Background checks, two-adult rule, mandatory reporting, child protection policy, incident response</div>
+              <div class="fw-footer"><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" id="fw-bar-child" style="width:0%;background:#E24B4A"></div></div></div><span class="score-pct" id="fw-pct-child" style="color:#E24B4A">0%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-coins"></i>Financial Integrity</div>
+          <div class="framework-grid">
+            <div class="fw-card tier-high" onclick="openFw('Financial Controls','What financial internal controls should a church or nonprofit have in place? Walk me through segregation of duties, dual signatures, bank reconciliations, and audit requirements.')">
+              <div class="fw-name">Financial Controls (COSO)</div>
+              <div class="fw-desc">Annual audit, dual signatures, bank reconciliation, segregation of duties, budget approval</div>
+              <div class="fw-footer"><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" id="fw-bar-financial" style="width:0%;background:#E24B4A"></div></div></div><span class="score-pct" id="fw-pct-financial" style="color:#E24B4A">0%</span></div>
+            </div>
+            <div class="fw-card tier-high" onclick="openFw('Donor Privacy and Data','What are the data privacy and security requirements for donor information? Walk me through CRM security, privacy notices, access controls, and data retention.')">
+              <div class="fw-name">Donor Privacy & Data</div>
+              <div class="fw-desc">Encrypted CRM, privacy notice, access controls, data retention, third-party platform security</div>
+              <div class="fw-footer"><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" id="fw-bar-donor" style="width:0%;background:#E24B4A"></div></div></div><span class="score-pct" id="fw-pct-donor" style="color:#E24B4A">0%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-map-pin"></i>State Registration</div>
+          <div class="framework-grid">
+            <div class="fw-card tier-high" onclick="openFw('State Charity Registration','Which states require nonprofit charitable solicitation registration? Walk me through the multi-state registration process and ongoing renewal requirements.')">
+              <div class="fw-name">State Charity Registration</div>
+              <div class="fw-desc">Multi-state solicitation registration, annual renewals, fundraising disclosures, professional fundraiser agreements</div>
+              <div class="fw-footer"><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" id="fw-bar-charity" style="width:0%;background:#E24B4A"></div></div></div><span class="score-pct" id="fw-pct-charity" style="color:#E24B4A">0%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI ADVISOR -->
+      <div class="page" id="page-assistant">
+        <div class="page-header">
+          <div>
+            <div class="page-title">AI Compliance Advisor</div>
+            <div class="page-sub">Powered by Claude · Expert guidance on nonprofit & church compliance</div>
+          </div>
+        </div>
+        <div class="chat-area">
+          <div class="chat-toolbar">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:11px;font-family:var(--font-mono);color:var(--text3)">Framework:</span>
+              <select class="fw-selector" id="fw-selector" onchange="changeFw()">
+                <option>All Frameworks</option>
+                <option>IRS 501(c)(3) Compliance</option>
+                <option>Child Safety and Protection</option>
+                <option>Financial Controls</option>
+                <option>Donor Privacy and Data</option>
+                <option>State Charity Registration</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-warn" onclick="sendPrompt('Generate a comprehensive nonprofit compliance gap assessment report for a church or religious organization. For each of the 5 frameworks — IRS 501(c)(3), Child Safety, Financial Controls, Donor Privacy, and State Charity Registration — identify the highest-risk gaps, estimate legal and liability exposure, and provide a prioritized board-ready remediation roadmap.')"><i class="ti ti-report"></i>Board Report ↗</button>
+            </div>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg">
+              <div class="msg-avatar ai">S</div>
+              <div>
+                <div class="msg-bubble">
+                  <div class="fw-tag">Shepherd AI · All Frameworks</div>
+                  Welcome. I'm your nonprofit and church compliance advisor with expertise across IRS 501(c)(3) governance, child safety and protection, financial internal controls, donor data privacy, and multi-state charity registration.<br><br>
+                  I can help you prepare for audits, protect your tax-exempt status, strengthen your child protection program, and ensure your fundraising is legally compliant across all states where you solicit. What would you like to work on?
+                </div>
+                <div class="msg-meta">Shepherd AI · Just now</div>
+              </div>
+            </div>
+          </div>
+          <div class="quick-chips" id="quick-chips">
+            <div class="chip" onclick="askQuestion('What must our conflict of interest policy include, and what does the annual board disclosure process look like to satisfy IRS 501(c)(3) requirements?')">Conflict of interest policy</div>
+            <div class="chip" onclick="askQuestion('What background check process should we use for volunteers who work with minors? What types of checks are required and how often should they be renewed?')">Background check process</div>
+            <div class="chip" onclick="askQuestion('How do we implement proper segregation of duties for our offering collection and bank deposits? We have a small staff of 3 people.')">Segregation of duties</div>
+            <div class="chip" onclick="askQuestion('Which states require nonprofit charitable solicitation registration? We email and send direct mail to donors across the country.')">Multi-state registration</div>
+            <div class="chip" onclick="askQuestion('What must our Child and Youth Protection Policy include? Walk me through the essential elements and best practices for a church.')">Child protection policy</div>
+            <div class="chip" onclick="askQuestion('What are mandatory reporter requirements for church staff and volunteers? Who must report suspected child abuse and to which authorities?')">Mandatory reporting</div>
+          </div>
+          <div class="chat-input-area">
+            <textarea class="chat-input" id="chat-input" placeholder="Ask about nonprofit or church compliance..." rows="1" onkeydown="handleKey(event)"></textarea>
+            <button class="send-btn" onclick="sendChat()"><i class="ti ti-send"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT CHECKLIST -->
+      <div class="page" id="page-checklist">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Audit Checklist</div>
+            <div class="page-sub">30 controls across 5 frameworks · Track evidence and status</div>
+          </div>
+          <span id="cl-score-badge" style="font-size:11px;padding:3px 10px;background:#FCEBEB;color:#791F1F;border-radius:6px;font-weight:500">0%</span>
+        </div>
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:12px">
+          <div class="cl-sidebar" id="cl-sidebar"></div>
+          <div id="cl-items"></div>
+        </div>
+      </div>
+
+      <!-- GAP ANALYSIS -->
+      <div class="page" id="page-gaps">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Gap Analysis</div>
+            <div class="page-sub" id="gap-sub">Loading gaps...</div>
+          </div>
+          <button class="btn btn-warn" onclick="sendPrompt('Generate a detailed nonprofit compliance gap analysis report. For each incomplete control across IRS 501(c)(3), Child Safety, Financial Controls, Donor Privacy, and State Charity Registration — provide the regulatory reference, liability exposure, recommended corrective action, effort estimate, and target completion date. Sort by risk priority and format for board presentation.')"><i class="ti ti-download"></i>Board Report ↗</button>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-filter"></i>Priority Filter</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <div class="chip" style="background:rgba(226,75,74,0.1);border-color:rgba(226,75,74,0.25);color:#c0302f" onclick="filterGaps(3)">Weight 3 — Critical</div>
+              <div class="chip" style="background:rgba(186,117,23,0.08);border-color:rgba(186,117,23,0.2);color:#8a5510" onclick="filterGaps(2)">Weight 2 — High</div>
+              <div class="chip" onclick="filterGaps(0)">All gaps</div>
+              <div class="chip" onclick="filterArea('irs')">IRS 501(c)(3)</div>
+              <div class="chip" onclick="filterArea('child')">Child Safety</div>
+              <div class="chip" onclick="filterArea('financial')">Financial</div>
+              <div class="chip" onclick="filterArea('donor')">Donor Privacy</div>
+            </div>
+          </div>
+          <div class="card" style="display:flex;gap:16px;align-items:center;justify-content:center">
+            <div style="text-align:center">
+              <div class="ring-wrap">
+                <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--bg3)" stroke-width="8"/><circle cx="40" cy="40" r="32" fill="none" stroke="#E24B4A" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" transform="rotate(-90 40 40)" id="ring-overall"/></svg>
+                <div class="ring-center"><div class="ring-pct" id="ring-pct-overall" style="color:#E24B4A">0%</div><div class="ring-lbl">overall</div></div>
+              </div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">Overall</div>
+            </div>
+            <div style="text-align:center">
+              <div class="ring-wrap">
+                <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--bg3)" stroke-width="8"/><circle cx="40" cy="40" r="32" fill="none" stroke="#E24B4A" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" transform="rotate(-90 40 40)" id="ring-worst"/></svg>
+                <div class="ring-center"><div class="ring-pct" id="ring-pct-worst" style="color:#E24B4A">0%</div><div class="ring-lbl" id="ring-lbl-worst">—</div></div>
+              </div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">Worst</div>
+            </div>
+            <div style="text-align:center">
+              <div class="ring-wrap">
+                <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--bg3)" stroke-width="8"/><circle cx="40" cy="40" r="32" fill="none" stroke="#639922" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" transform="rotate(-90 40 40)" id="ring-best"/></svg>
+                <div class="ring-center"><div class="ring-pct" id="ring-pct-best" style="color:#639922">0%</div><div class="ring-lbl" id="ring-lbl-best">—</div></div>
+              </div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">Best</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-list-details"></i>Open Gaps — Priority Queue</div>
+          <div class="scrollable">
+            <table class="gap-table">
+              <thead><tr><th>Area</th><th>Framework</th><th>Gap Description</th><th>Risk</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="gap-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="page" id="page-docs">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Document Center</div>
+            <div class="page-sub">Compliance artifacts · Policies, procedures, board resolutions</div>
+          </div>
+          <button class="btn btn-green" onclick="sendPrompt('What compliance documents should a church or nonprofit maintain? List all required and recommended artifacts for IRS 501(c)(3), Child Safety, Financial Controls, Donor Privacy, and State Charity Registration — with a brief description of each and who the primary audience is.')"><i class="ti ti-plus"></i>Generate Doc ↗</button>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-building-bank"></i>IRS & Financial Artifacts</div>
+            <div class="doc-row" onclick="sendPrompt('Draft a conflict of interest policy for a 501(c)(3) nonprofit or church that meets IRS requirements. Include: definitions, disclosure procedures, annual disclosure form, voting recusal process, documentation requirements, and how to handle violations.')">
+              <i class="ti ti-file-check doc-icon"></i>
+              <div><div class="doc-name">Conflict of Interest Policy</div><div class="doc-meta">IRS 501(c)(3) · Board governance · Annual disclosure required</div></div>
+              <div class="doc-action"><span class="risk-pill risk-critical">Missing</span></div>
+            </div>
+            <div class="doc-row" onclick="sendPrompt('Draft a gift acceptance policy for a nonprofit that covers: cash, check, credit card, securities, real estate, vehicles, in-kind donations, planned gifts, and cryptocurrency. Include valuation procedures, restrictions, and board approval thresholds.')">
+              <i class="ti ti-heart doc-icon"></i>
+              <div><div class="doc-name">Gift Acceptance Policy</div><div class="doc-meta">IRS 501(c)(3) · Non-cash donations · Form 8283 triggers</div></div>
+              <div class="doc-action"><span class="risk-pill risk-medium">Draft</span></div>
+            </div>
+            <div class="doc-row" onclick="sendPrompt('Draft a financial controls policy for a church or nonprofit covering: offering collection procedures, counting team requirements, deposit procedures, dual-signature requirements for checks over $X, expense reimbursement, and monthly reconciliation process. We have a small staff.')">
+              <i class="ti ti-coins doc-icon"></i>
+              <div><div class="doc-name">Financial Controls Policy</div><div class="doc-meta">COSO · Internal controls · Fraud prevention</div></div>
+              <div class="doc-action"><span class="risk-pill risk-high">Update needed</span></div>
+            </div>
+            <div class="doc-row" onclick="sendPrompt('What does a nonprofit independent financial audit or review engagement look like? What should we expect from the auditor, what do we need to prepare, and what is the difference between a full audit, review, and compilation for a nonprofit?')">
+              <i class="ti ti-file-analytics doc-icon"></i>
+              <div><div class="doc-name">Annual Audit Preparation Checklist</div><div class="doc-meta">Financial Controls · Annual requirement · Board approved</div></div>
+              <div class="doc-action"><span class="risk-pill risk-high">Due soon</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-user-shield"></i>Child Safety & Operations</div>
+            <div class="doc-row" onclick="sendPrompt('Draft a comprehensive Child and Youth Protection Policy for a church. Include: purpose and scope, definitions, two-adult rule, appropriate touch boundaries, reporting suspected abuse (mandatory reporting), background check requirements, training requirements, digital communications policy, and enforcement. Align with best practice standards from church liability insurers.')">
+              <i class="ti ti-shield-check doc-icon"></i>
+              <div><div class="doc-name">Child & Youth Protection Policy</div><div class="doc-meta">Child Safety · Core policy · Board adopted</div></div>
+              <div class="doc-action"><span class="risk-pill risk-critical">Missing</span></div>
+            </div>
+            <div class="doc-row" onclick="sendPrompt('Create a volunteer background check and screening process for a church or nonprofit. Include: which roles require checks, types of checks (national criminal, sex offender registry, reference checks), how often to renew, what disqualifies a volunteer, and how to handle results confidentially.')">
+              <i class="ti ti-id doc-icon"></i>
+              <div><div class="doc-name">Volunteer Screening Procedure</div><div class="doc-meta">Child Safety · All roles with minor contact</div></div>
+              <div class="doc-action"><span class="risk-pill risk-critical">Missing</span></div>
+            </div>
+            <div class="doc-row" onclick="sendPrompt('Draft a donor privacy notice for a church or nonprofit website and giving platforms. Include: what information we collect, how we use it, who we share it with, how we protect it, donor rights to opt out of communications, and contact information. Keep it plain language.')">
+              <i class="ti ti-lock doc-icon"></i>
+              <div><div class="doc-name">Donor Privacy Notice</div><div class="doc-meta">Donor Privacy · Website + giving platforms</div></div>
+              <div class="doc-action"><span class="risk-pill risk-high">Missing</span></div>
+            </div>
+            <div class="doc-row" onclick="sendPrompt('Which states require nonprofit charitable solicitation registration? We solicit donations by mail, email, and on our website nationally. Walk me through how to determine where we must register, the registration process, annual renewal requirements, and what happens if we fail to register.')">
+              <i class="ti ti-map-pin doc-icon"></i>
+              <div><div class="doc-name">State Registration Tracker</div><div class="doc-meta">Charity Registration · Multi-state compliance</div></div>
+              <div class="doc-action"><span class="risk-pill risk-high">Review needed</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-printer"></i>Export & Reporting</div>
+          <div style="font-size:12px;color:var(--text2);text-align:center;padding:8px">
+            Use browser print (Ctrl/Cmd+P) to export this compliance summary as PDF for your board of directors, auditors, or insurance provider.
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTS -->
+      <div class="page" id="page-alerts">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Compliance Alerts</div>
+            <div class="page-sub">3 active alerts · Regulatory deadlines and risk items</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-bell-ringing"></i>Active Alerts</div>
+          <div class="alert-item alert-critical">
+            <i class="ti ti-alert-octagon alert-icon" style="color:#c0302f"></i>
+            <div class="alert-text"><strong>Child Safety — Background checks not current.</strong> Any volunteer working with minors without a current background check represents immediate legal and liability exposure. This is the #1 church liability risk. Complete before allowing any volunteer to serve in children's ministry.</div>
+          </div>
+          <div class="alert-item alert-critical">
+            <i class="ti ti-alert-octagon alert-icon" style="color:#c0302f"></i>
+            <div class="alert-text"><strong>Financial Controls — No segregation of duties.</strong> A single person controlling the offering collection, deposit, recording, and reconciliation creates significant fraud risk and will be flagged in any independent audit. Implement a two-person offering count team immediately.</div>
+          </div>
+          <div class="alert-item alert-warn">
+            <i class="ti ti-alert-triangle alert-icon" style="color:#8a5510"></i>
+            <div class="alert-text"><strong>Form 990 — Annual filing deadline approaching.</strong> The IRS automatically revokes 501(c)(3) status after 3 consecutive missed filings. Reinstatement requires a new application with fees. File on time or request an extension (Form 8868) before the deadline.</div>
+          </div>
+          <div class="alert-item alert-warn">
+            <i class="ti ti-alert-triangle alert-icon" style="color:#8a5510"></i>
+            <div class="alert-text"><strong>State Charity Registration — Online fundraising triggers multi-state obligations.</strong> Soliciting donations via email or website may require registration in states where donors reside — not just where you are incorporated. Review the Charleston Principles and register in all applicable states.</div>
+          </div>
+          <div class="alert-item alert-info">
+            <i class="ti ti-info-circle alert-icon" style="color:var(--purple)"></i>
+            <div class="alert-text"><strong>Board Governance — Conflict of interest disclosures due.</strong> Annual signed conflict of interest disclosures from all board members are required for IRS 501(c)(3) compliance and should be collected at the first board meeting of each fiscal year.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-calendar"></i>Upcoming Deadlines</div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-red"></div>
+            <div class="tl-body"><div class="tl-title">Form 990 Annual Filing</div><div class="tl-meta">IRS 501(c)(3) · 15th day of 5th month after fiscal year end · Extension available (Form 8868)</div></div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-yellow"></div>
+            <div class="tl-body"><div class="tl-title">Annual Conflict of Interest Disclosures</div><div class="tl-meta">IRS 501(c)(3) · Collect at first board meeting of each fiscal year</div></div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-yellow"></div>
+            <div class="tl-body"><div class="tl-title">State Charity Registration Renewals</div><div class="tl-meta">State Registration · Varies by state · Track all jurisdictions</div></div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-yellow"></div>
+            <div class="tl-body"><div class="tl-title">Volunteer Background Check Renewals</div><div class="tl-meta">Child Safety · Every 2–3 years per best practice · Check state requirements</div></div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot dot-green"></div>
+            <div class="tl-body"><div class="tl-title">Annual Financial Audit / Review</div><div class="tl-meta">Financial Controls · Timing per bylaws · Board approved engagement letter</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTING -->
+      <div class="page" id="page-reporting">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Readiness Reporting</div>
+            <div class="page-sub">Board-ready compliance summary · Export via Ctrl/Cmd+P</div>
+          </div>
+        </div>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">Overall Score</div>
+            <div class="metric-value" id="rep-score" style="color:#BA7517">0%</div>
+            <div class="metric-delta delta-warn" id="rep-readiness">Not started</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Complete</div>
+            <div class="metric-value" id="rep-complete" style="color:#27500A">0</div>
+            <div class="metric-delta delta-up">controls verified</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">In Progress</div>
+            <div class="metric-value" id="rep-inprogress" style="color:#633806">0</div>
+            <div class="metric-delta delta-warn">partial credit</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Not Started</div>
+            <div class="metric-value" id="rep-notstarted" style="color:#791F1F">30</div>
+            <div class="metric-delta delta-down">require action</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-bar"></i>Framework Breakdown</div>
+          <div id="rep-breakdown" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div class="card" style="background:#EEEDFE;border-color:#d0cdfa">
+          <div class="card-title" style="color:var(--purple2)"><i class="ti ti-printer" style="color:var(--purple)"></i>Export Instructions</div>
+          <p style="font-size:12px;color:var(--purple2);line-height:1.6">Use <strong>Ctrl/Cmd+P → Save as PDF</strong> to export this report for your board of directors, independent auditors, church liability insurer, or state regulators. Complete all checklist items first for a fully documented readiness report.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const AUDIT_AREAS=[
+  {id:"irs",label:"IRS 501(c)(3) Compliance",icon:"ti-building-bank",color:"#3C3489",bg:"#EEEDFE",items:[
+    {id:"irs1",text:"Form 990 filed on time for current fiscal year",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"irs2",text:"Board conflict of interest policy in place with annual signed disclosures",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"irs3",text:"Written policy against private inurement / benefit",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"irs4",text:"No political campaign activity or lobbying beyond permitted limits",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"irs5",text:"Public disclosure of Form 990 and exemption application available",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"irs6",text:"Exempt purpose activities documented and primary",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"irs7",text:"Board meeting minutes maintained for at least 3 years",weight:1,evidence:"",status:"not_started",notes:""},
+  ]},
+  {id:"child",label:"Child Safety & Protection",icon:"ti-user-shield",color:"#791F1F",bg:"#FCEBEB",items:[
+    {id:"cs1",text:"Background checks completed for ALL volunteers with minor contact",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"cs2",text:"Two-adult rule enforced in all children's ministry settings",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"cs3",text:"Mandatory reporter training completed by applicable staff and volunteers",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"cs4",text:"Child & Youth Protection Policy adopted, signed, and accessible",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"cs5",text:"Incident reporting procedure for child safety events documented",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"cs6",text:"Screening process includes reference checks and signed codes of conduct",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"cs7",text:"Annual child safety training completed by children's ministry staff",weight:2,evidence:"",status:"not_started",notes:""},
+  ]},
+  {id:"financial",label:"Financial Controls (COSO)",icon:"ti-coins",color:"#633806",bg:"#FAEEDA",items:[
+    {id:"fc1",text:"Annual independent financial audit or review completed",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"fc2",text:"Dual-signature policy enforced for checks above threshold",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"fc3",text:"Monthly bank reconciliations performed and reviewed",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"fc4",text:"Expense reimbursement policy with receipt requirements",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"fc5",text:"Segregation of duties — no single person controls full cash cycle",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"fc6",text:"Budget approved by board annually",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"fc7",text:"Gift acceptance policy documented for non-cash donations",weight:1,evidence:"",status:"not_started",notes:""},
+  ]},
+  {id:"donor",label:"Donor Privacy & Data",icon:"ti-heart",color:"#0C447C",bg:"#E6F1FB",items:[
+    {id:"dp1",text:"Donor data stored in encrypted CRM or database",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"dp2",text:"Privacy notice posted on website and giving platforms",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"dp3",text:"Access to donor records restricted to authorized staff only",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"dp4",text:"Data retention and deletion policy in place",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"dp5",text:"Third-party giving platforms reviewed for data security",weight:2,evidence:"",status:"not_started",notes:""},
+  ]},
+  {id:"charity",label:"State Charity Registration",icon:"ti-map-pin",color:"#085041",bg:"#E1F5EE",items:[
+    {id:"sc1",text:"Charitable solicitation registrations current in all applicable states",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"sc2",text:"Annual renewal filings tracked with deadlines",weight:3,evidence:"",status:"not_started",notes:""},
+    {id:"sc3",text:"Fundraising disclosures included in solicitation materials",weight:2,evidence:"",status:"not_started",notes:""},
+    {id:"sc4",text:"Professional fundraiser agreements registered if applicable",weight:1,evidence:"",status:"not_started",notes:""},
+  ]},
+];
+
+const STATUS_OPT=[
+  {v:"not_started",label:"Not started",bg:"#F1EFE8",col:"#5F5E5A"},
+  {v:"in_progress",label:"In progress",bg:"#FAEEDA",col:"#633806"},
+  {v:"complete",label:"Complete",bg:"#EAF3DE",col:"#27500A"},
+  {v:"na",label:"N/A",bg:"#F1EFE8",col:"#888"},
+];
+const stBg=v=>STATUS_OPT.find(s=>s.v===v)?.bg||"#F1EFE8";
+const stCol=v=>STATUS_OPT.find(s=>s.v===v)?.col||"#888";
+const stLbl=v=>STATUS_OPT.find(s=>s.v===v)?.label||v;
+
+let areas=JSON.parse(JSON.stringify(AUDIT_AREAS));
+let activeArea=areas[0].id;
+let gapFilter={weight:0,areaId:null};
+
+const FW_LABEL_MAP={irs:"IRS 501c3",child:"Child Safety",financial:"Financial",donor:"Donor Privacy",charity:"Charity Reg"};
+
+function calcScore(areaArr){
+  let total=0,earned=0;
+  areaArr.forEach(a=>a.items.forEach(it=>{
+    if(it.status==="na")return;
+    total+=it.weight;
+    if(it.status==="complete")earned+=it.weight;
+    else if(it.status==="in_progress")earned+=it.weight*0.5;
+  }));
+  return total===0?0:Math.round(earned/total*100);
+}
+function areaScore(a){
+  let total=0,earned=0;
+  a.items.forEach(it=>{
+    if(it.status==="na")return;
+    total+=it.weight;
+    if(it.status==="complete")earned+=it.weight;
+    else if(it.status==="in_progress")earned+=it.weight*0.5;
+  });
+  return total===0?0:Math.round(earned/total*100);
+}
+function scoreColor(s){return s>=70?"#639922":s>=40?"#BA7517":"#E24B4A"}
+function progressColor(s){return s>=70?"#5B4FCF":s>=40?"#BA7517":"#E24B4A"}
+
+function updateAllDisplays(){
+  const score=calcScore(areas);
+  const allItems=areas.flatMap(a=>a.items);
+  const complete=allItems.filter(i=>i.status==="complete").length;
+  const inprog=allItems.filter(i=>i.status==="in_progress").length;
+  const notstarted=allItems.filter(i=>i.status==="not_started").length;
+  const readiness=score>=80?"Audit ready":score>=60?"Needs attention":"Not ready";
+  const rcolor=score>=80?"#27500A":score>=60?"#633806":"#791F1F";
+
+  const ds=document.getElementById("dash-score");if(ds){ds.textContent=score+"%";ds.style.color=rcolor}
+  const dr=document.getElementById("dash-readiness");if(dr){dr.textContent=readiness;dr.style.color=rcolor}
+  const dc=document.getElementById("dash-complete");if(dc)dc.textContent=complete;
+  const dt=document.getElementById("dash-total");if(dt)dt.textContent="of "+allItems.length+" total";
+  const dg=document.getElementById("dash-gaps");if(dg)dg.textContent=notstarted+inprog;
+
+  areas.forEach(a=>{
+    const s=areaScore(a);const col=progressColor(s);
+    const ph=document.getElementById("ph-"+a.id);if(ph){ph.textContent=s+"%";ph.style.color=col}
+    const pf=document.getElementById("pf-"+a.id);if(pf){pf.style.width=Math.max(s,1)+"%";pf.style.background=col}
+    const fwb=document.getElementById("fw-bar-"+a.id);if(fwb){fwb.style.width=Math.max(s,1)+"%";fwb.style.background=col}
+    const fwp=document.getElementById("fw-pct-"+a.id);if(fwp){fwp.textContent=s+"%";fwp.style.color=col}
+  });
+
+  const gb=document.getElementById("gap-badge");if(gb)gb.textContent=notstarted+inprog;
+
+  const csb=document.getElementById("cl-score-badge");
+  if(csb){csb.textContent=score+"%";csb.style.background=score>=80?"#EAF3DE":score>=60?"#FAEEDA":"#FCEBEB";csb.style.color=rcolor}
+
+  const rs=document.getElementById("rep-score");if(rs){rs.textContent=score+"%";rs.style.color=rcolor}
+  const rr=document.getElementById("rep-readiness");if(rr){rr.textContent=readiness;rr.style.color=rcolor}
+  const rc=document.getElementById("rep-complete");if(rc)rc.textContent=complete;
+  const ri=document.getElementById("rep-inprogress");if(ri)ri.textContent=inprog;
+  const rn=document.getElementById("rep-notstarted");if(rn)rn.textContent=notstarted;
+
+  const rb=document.getElementById("rep-breakdown");
+  if(rb){
+    rb.innerHTML="";
+    areas.forEach(a=>{
+      const s=areaScore(a);const col=progressColor(s);
+      const done=a.items.filter(i=>i.status==="complete").length;
+      const hg=a.items.filter(i=>(i.status==="not_started"||i.status==="in_progress")&&i.weight===3).length;
+      rb.innerHTML+=`<div style="background:var(--bg);border:1px solid ${hg>0?"#F7C1C1":"var(--border)"};border-radius:9px;padding:12px 14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
+          <div style="width:28px;height:28px;background:${a.bg};border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${a.icon}" style="font-size:14px;color:${a.color}"></i></div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:500">${a.label}</div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${done}/${a.items.filter(i=>i.status!=="na").length} items complete</div></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${hg>0?`<span style="font-size:10px;background:#FCEBEB;color:#791F1F;padding:1px 7px;border-radius:4px;font-weight:500">${hg} critical gap${hg>1?"s":""}</span>`:""}
+            <span style="font-size:14px;font-weight:700;color:${scoreColor(s)}">${s}%</span>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border-radius:999px;height:5px"><div style="width:${Math.max(s,1)}%;background:${col};border-radius:999px;height:5px"></div></div>
+      </div>`;
+    });
+  }
+
+  const scores=areas.map(a=>({id:a.id,label:FW_LABEL_MAP[a.id]||a.label.split(" ")[0],s:areaScore(a)}));
+  const ov=score;
+  const worst=scores.reduce((a,b)=>b.s<a.s?b:a,scores[0]);
+  const best=scores.reduce((a,b)=>b.s>a.s?b:a,scores[0]);
+  function setRing(id,pct,col){
+    const el=document.getElementById("ring-"+id);if(!el)return;
+    const da=Math.round(pct/100*201);el.setAttribute("stroke-dasharray",da+" "+(201-da));el.setAttribute("stroke",col);
+  }
+  setRing("overall",ov,progressColor(ov));
+  const ro=document.getElementById("ring-pct-overall");if(ro){ro.textContent=ov+"%";ro.style.color=progressColor(ov)}
+  setRing("worst",worst.s,progressColor(worst.s));
+  const rw=document.getElementById("ring-pct-worst");if(rw){rw.textContent=worst.s+"%";rw.style.color=progressColor(worst.s)}
+  const rwl=document.getElementById("ring-lbl-worst");if(rwl)rwl.textContent=worst.label;
+  setRing("best",best.s,progressColor(best.s));
+  const rb2=document.getElementById("ring-pct-best");if(rb2){rb2.textContent=best.s+"%";rb2.style.color=progressColor(best.s)}
+  const rbl=document.getElementById("ring-lbl-best");if(rbl)rbl.textContent=best.label;
+  const gs=document.getElementById("gap-sub");if(gs)gs.textContent=(notstarted+inprog)+" open items · Sorted by risk priority";
+
+  updateGapTable();
+  updateChecklist();
+}
+
+function updateGapTable(){
+  const tbody=document.getElementById("gap-table-body");if(!tbody)return;
+  const gaps=areas.flatMap(a=>a.items.filter(it=>{
+    if(it.status==="complete"||it.status==="na")return false;
+    if(gapFilter.weight>0&&it.weight!==gapFilter.weight)return false;
+    if(gapFilter.areaId&&a.id!==gapFilter.areaId)return false;
+    return true;
+  }).map(it=>({...it,area:a.label,areaColor:a.color,areaBg:a.bg,areaId:a.id})));
+  gaps.sort((a,b)=>b.weight-a.weight);
+  if(gaps.length===0){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">No gaps match current filter</td></tr>`;return;}
+  tbody.innerHTML=gaps.map(it=>{
+    const riskLabel=it.weight===3?"Critical":it.weight===2?"High":"Medium";
+    const riskClass=it.weight===3?"risk-critical":it.weight===2?"risk-high":"risk-medium";
+    const prompt=`Provide a step-by-step corrective action plan for this nonprofit compliance gap: "${it.text}" — Framework: ${it.area}. Include policy templates needed, recommended vendors or tools, staff or volunteer training requirements, documentation requirements, estimated effort, and a 60-day remediation timeline.`;
+    return `<tr>
+      <td style="color:var(--text1);font-size:12px;max-width:120px;font-weight:500">${FW_LABEL_MAP[it.areaId]||it.area}</td>
+      <td><span class="tier-badge" style="background:${it.areaBg};color:${it.areaColor};border:1px solid ${it.areaColor}22">${FW_LABEL_MAP[it.areaId]||it.area.split(" ")[0]}</span></td>
+      <td style="color:var(--text1);font-size:12px;max-width:260px">${it.text}</td>
+      <td><span class="risk-pill ${riskClass}">${riskLabel}</span></td>
+      <td><span class="status-dot ${it.status==="in_progress"?"dot-yellow":"dot-red"}"></span>${stLbl(it.status)}</td>
+      <td><button class="btn btn-sm" onclick="sendPrompt(\`${prompt.replace(/`/g,"'")}\`);showPage('assistant')">Fix ↗</button></td>
+    </tr>`;
+  }).join("");
+}
+
+function filterGaps(w){gapFilter={weight:w,areaId:null};updateGapTable()}
+function filterArea(id){gapFilter={weight:0,areaId:id};updateGapTable()}
+
+function updateChecklist(){
+  const sidebar=document.getElementById("cl-sidebar");
+  const itemsDiv=document.getElementById("cl-items");
+  if(!sidebar||!itemsDiv)return;
+
+  sidebar.innerHTML=areas.map(a=>{
+    const s=areaScore(a);
+    return `<div class="cl-area-card${a.id===activeArea?" active":""}" onclick="setActiveArea('${a.id}')">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+        <i class="ti ${a.icon}" style="font-size:13px;color:${a.color}"></i>
+        <span style="font-size:11px;font-weight:500;color:#333;line-height:1.3">${a.label}</span>
+      </div>
+      <div style="background:var(--bg3);border-radius:999px;height:4px">
+        <div style="width:${Math.max(s,2)}%;background:${progressColor(s)};border-radius:999px;height:4px"></div>
+      </div>
+      <div style="font-size:10px;color:${scoreColor(s)};font-weight:500;margin-top:3px;text-align:right">${s}%</div>
+    </div>`;
+  }).join("");
+
+  const cur=areas.find(a=>a.id===activeArea);
+  if(!cur){itemsDiv.innerHTML="";return;}
+  itemsDiv.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="width:32px;height:32px;background:${cur.bg};border-radius:8px;display:flex;align-items:center;justify-content:center">
+        <i class="ti ${cur.icon}" style="font-size:16px;color:${cur.color}"></i>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600">${cur.label}</div>
+        <div style="font-size:10px;color:var(--text3)">${cur.items.length} items · ${cur.items.filter(i=>i.status==="complete").length} complete</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${cur.items.map(it=>`
+        <div style="background:var(--card);border:0.5px solid var(--border);border-radius:9px;padding:12px 14px">
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div style="width:20px;height:20px;border-radius:50%;background:${it.status==="complete"?"#EAF3DE":it.status==="in_progress"?"#FAEEDA":"#F1EFE8"};border:1.5px solid ${it.status==="complete"?"#639922":it.status==="in_progress"?"#BA7517":"var(--border)"};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;cursor:pointer"
+              onclick="toggleItem('${cur.id}','${it.id}')">
+              ${it.status==="complete"?`<i class="ti ti-check" style="font-size:11px;color:#639922"></i>`:""}
+              ${it.status==="in_progress"?`<i class="ti ti-clock" style="font-size:10px;color:#BA7517"></i>`:""}
+            </div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:500;line-height:1.5;margin-bottom:6px">${it.text}</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <select onchange="updateItem('${cur.id}','${it.id}','status',this.value)" style="width:auto;min-width:100px;font-size:11px;padding:3px 7px;background:${stBg(it.status)};color:${stCol(it.status)};border-color:${stCol(it.status)}">
+                  ${STATUS_OPT.map(s=>`<option value="${s.v}"${it.status===s.v?" selected":""}>${s.label}</option>`).join("")}
+                </select>
+                <span style="font-size:10px;color:var(--text3)">Weight: ${it.weight}</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px">
+            <input value="${it.evidence}" oninput="updateItem('${cur.id}','${it.id}','evidence',this.value)" placeholder="Evidence / document reference" style="font-size:11px"/>
+            <input value="${it.notes}" oninput="updateItem('${cur.id}','${it.id}','notes',this.value)" placeholder="Auditor notes" style="font-size:11px"/>
+          </div>
+        </div>`).join("")}
+    </div>`;
+}
+
+function setActiveArea(id){activeArea=id;updateChecklist()}
+function toggleItem(areaId,itemId){
+  const a=areas.find(x=>x.id===areaId);if(!a)return;
+  const it=a.items.find(x=>x.id===itemId);if(!it)return;
+  it.status=it.status==="complete"?"not_started":"complete";
+  updateAllDisplays();
+}
+function updateItem(areaId,itemId,field,val){
+  const a=areas.find(x=>x.id===areaId);if(!a)return;
+  const it=a.items.find(x=>x.id===itemId);if(!it)return;
+  it[field]=val;
+  if(field==="status")updateAllDisplays();
+}
+
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  const pg=document.getElementById("page-"+id);if(pg)pg.classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(n=>{if(n.getAttribute("onclick")&&n.getAttribute("onclick").includes("'"+id+"'"))n.classList.add("active")});
+  if(id==="gaps")updateGapTable();
+  if(id==="checklist")updateChecklist();
+}
+
+function setFw(fw){const sel=document.getElementById("fw-selector");if(sel){for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===fw||sel.options[i].text===fw){sel.selectedIndex=i;break;}}}}
+function changeFw(){addAIMessage(`Framework context switched to: ${document.getElementById("fw-selector").value}. Ask me anything about this framework.`,"Shepherd AI")}
+function openFw(fw,q){showPage("assistant");setFw(fw);setTimeout(()=>sendPrompt(q),100)}
+
+const responses={
+  "conflict of interest":["Your conflict of interest policy must include: (1) a definition of conflicts of interest (financial interests, family relationships, other organizational loyalties); (2) an annual disclosure requirement where every board member and officer discloses all potential conflicts in writing; (3) a voting recusal process — conflicted individuals must leave the room during discussion and vote; (4) documentation in board minutes showing the recusal occurred; (5) a whistleblower protection provision; (6) consequences for violations. The annual disclosure form should be signed at the first board meeting of each fiscal year and kept in board records. This is one of the most scrutinized items on Form 990."],
+  "background check":["For volunteers working with minors, best practice requires: (1) National criminal background check (search all states where the person has lived); (2) National Sex Offender Registry check; (3) Reference checks from at least 2 non-family references; (4) Signed code of conduct acknowledging child protection policies. Renew every 2-3 years at minimum — some state laws require more frequent checks. Disqualifying offenses should include any crime against a person, child abuse, sexual offenses, and recent violent felonies. Never allow a volunteer to begin serving with minors until the check is cleared. Maintain records securely and confidentially."],
+  "segregation of duties":["For small organizations, implement these controls: (1) Two-person offering count team — no one should count alone; use a counting sheet signed by both; (2) The person who deposits funds should not be the same person who records the transaction; (3) Someone other than the bookkeeper should reconcile bank statements; (4) The person who writes checks should not also sign them for transactions above your threshold; (5) Have a board member or non-staff treasurer review monthly bank statements. For a 3-person staff: rotate roles, use a board treasurer for oversight, and consider having two board members review financials monthly. Document all procedures in writing."],
+  "state registration":["The general rule: register in any state where you 'solicit' residents — which includes email, mail, and website donations if residents can see and respond to the appeal. About 40 states require registration. Key states with strict enforcement: California, New York, Florida, Pennsylvania, Illinois. The 'Charleston Principles' (2001) provide guidance for online fundraising, but many AGs take an aggressive position that a website visible to state residents triggers registration. To register: (1) File with the state's charity registration office (usually the AG or Secretary of State); (2) Provide IRS determination letter, Form 990, audited financials, board list; (3) Pay filing fees (range $25–$200+ per state); (4) Renew annually. Use Harbor Compliance or a similar service for multi-state management."],
+  "child protection":["Your Child & Youth Protection Policy must include: (1) Two-adult rule — two unrelated screened adults with minors at all times, no one-on-one situations; (2) Appropriate touch boundaries (open-hand touch only, no lap-sitting for children over 5, etc.); (3) Mandatory reporting procedures — all staff and volunteers must know their state's mandatory reporting laws and how to report suspected abuse; (4) Background check requirements for all workers with minors; (5) Digital communication policy (no private messages to minors, copy parents); (6) Incident reporting procedure (what to do if a child reports abuse or an incident occurs); (7) Annual training requirement. Have the policy reviewed by your church liability insurer and an attorney."],
+  "mandatory reporting":["Mandatory reporting requirements vary by state, but generally: (1) Identify who must report in your state — most states include clergy, teachers, childcare workers, counselors, and often volunteers in youth-serving organizations; (2) When in doubt, report — most states have a 'permissive' reporting option even for non-mandated reporters; (3) Report to your state's child protective services (CPS) hotline and/or local law enforcement; (4) You do not need to investigate or confirm abuse — reasonable suspicion is sufficient; (5) Clergy privilege varies by state — many states have eliminated or limited it; (6) Document the report (who, when, what was reported, agency reference number); (7) Do not inform the accused before reporting. Train all staff and volunteers annually on your state's specific requirements."],
+  "form 990":["Form 990 is required annually for most 501(c)(3) organizations. Key facts: (1) Due the 15th day of the 5th month after your fiscal year ends (May 15 for calendar-year organizations); (2) You can request a 6-month extension using Form 8868; (3) Automatic revocation of tax-exempt status after 3 consecutive missed filings — reinstatement requires a new application and fees; (4) The 990 is public — anyone can request a copy and Candid/GuideStar posts them; (5) Form 990-N (e-Postcard) for organizations with gross receipts ≤$50,000; (6) Form 990-EZ for gross receipts <$200,000 and assets <$500,000; (7) Full Form 990 for larger organizations. Schedule B lists major donors (confidential — not publicly disclosed)."],
+  "default":["I can help you with IRS 501(c)(3) compliance, child safety and protection policies, financial internal controls, donor data privacy, and multi-state charity registration. What specific compliance question can I answer for your church or nonprofit?"]
+};
+
+function getResponse(q){
+  const ql=q.toLowerCase();
+  if(ql.includes("conflict of interest")||ql.includes("disclosure"))return responses["conflict of interest"][0];
+  if(ql.includes("background check")||ql.includes("screening"))return responses["background check"][0];
+  if(ql.includes("segregation")||ql.includes("cash cycle")||ql.includes("dual")||ql.includes("offering"))return responses["segregation of duties"][0];
+  if(ql.includes("state")||ql.includes("registr")||ql.includes("solicitation")||ql.includes("multi-state"))return responses["state registration"][0];
+  if(ql.includes("child protection")||ql.includes("youth protection")||ql.includes("two-adult")||ql.includes("two adult"))return responses["child protection"][0];
+  if(ql.includes("mandatory reporter")||ql.includes("report")||ql.includes("abuse"))return responses["mandatory reporting"][0];
+  if(ql.includes("990")||ql.includes("form 990")||ql.includes("tax exempt"))return responses["form 990"][0];
+  return responses["default"][0];
+}
+
+function addUserMessage(text){
+  const msgs=document.getElementById("chat-messages");if(!msgs)return;
+  msgs.innerHTML+=`<div class="msg user"><div class="msg-avatar user-av">U</div><div><div class="msg-bubble">${text}</div><div class="msg-meta">You · Just now</div></div></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function addAIMessage(text,label){
+  const msgs=document.getElementById("chat-messages");if(!msgs)return;
+  const fw=document.getElementById("fw-selector")?.value||"All Frameworks";
+  msgs.innerHTML+=`<div class="msg"><div class="msg-avatar ai">S</div><div><div class="msg-bubble"><div class="fw-tag">Shepherd AI · ${fw}</div>${text}</div><div class="msg-meta">${label||"Shepherd AI"} · Just now</div></div></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function showThinking(){
+  const msgs=document.getElementById("chat-messages");if(!msgs)return;
+  msgs.innerHTML+=`<div class="thinking" id="thinking-dots"><span></span><span></span><span></span></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function hideThinking(){const t=document.getElementById("thinking-dots");if(t)t.remove()}
+
+function sendChat(){
+  const inp=document.getElementById("chat-input");if(!inp||!inp.value.trim())return;
+  const q=inp.value.trim();inp.value="";
+  addUserMessage(q);showThinking();
+  setTimeout(()=>{hideThinking();addAIMessage(getResponse(q))},900+Math.random()*600);
+}
+function sendPrompt(q){showPage("assistant");setTimeout(()=>{addUserMessage(q);showThinking();setTimeout(()=>{hideThinking();addAIMessage(getResponse(q))},900+Math.random()*600)},100)}
+function askQuestion(q){addUserMessage(q);showThinking();setTimeout(()=>{hideThinking();addAIMessage(getResponse(q))},900+Math.random()*600)}
+function handleKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat()}}
+
+updateAllDisplays();
+</script>
+</body>
+</html>
