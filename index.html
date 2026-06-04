@@ -146,6 +146,14 @@ body{font-family:var(--font-display);background:#faf9f6;color:var(--text1)}
 input,select,textarea{font-family:inherit;outline:none;font-size:12px;padding:7px 10px;border-radius:6px;border:0.5px solid var(--border);background:var(--card);color:var(--text1);width:100%}
 select{width:auto}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+.save-toast{position:fixed;bottom:18px;right:20px;background:#1a1720;color:#a89be8;font-size:11px;font-family:var(--font-mono);padding:7px 14px;border-radius:6px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;display:flex;align-items:center;gap:6px}
+.save-toast.show{opacity:1}
+.settings-row{display:flex;flex-direction:column;gap:4px;margin-bottom:16px}
+.settings-label{font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
+.settings-input{font-size:13px;padding:8px 11px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text1);width:100%;outline:none}
+.settings-input:focus{border-color:rgba(91,79,207,0.4)}
+.btn-danger{background:rgba(226,75,74,0.08);border-color:rgba(226,75,74,0.25);color:#c0302f}
+.btn-danger:hover{background:rgba(226,75,74,0.15)}
 </style>
 </head>
 <body>
@@ -160,7 +168,8 @@ select{width:auto}
     </div>
     <div class="topbar-right">
       <span class="status-badge">● 5 frameworks active</span>
-      <span style="font-size:11px;font-family:var(--font-mono);color:var(--text3)">Board Secretary · Admin</span>
+      <span style="font-size:11px;font-family:var(--font-mono);color:var(--text3)" id="topbar-role">Board Secretary · Admin</span>
+      <button class="btn btn-sm" onclick="showPage('settings')" title="Settings" style="padding:4px 8px;margin-left:2px"><i class="ti ti-settings"></i></button>
     </div>
   </div>
 
@@ -184,6 +193,9 @@ select{width:auto}
       <div class="nav-item" onclick="showPage('assistant');setFw('Financial Controls')"><i class="ti ti-coins" style="font-size:13px"></i><span style="font-size:11px">Financial Controls</span></div>
       <div class="nav-item" onclick="showPage('assistant');setFw('Donor Privacy & Data')"><i class="ti ti-heart" style="font-size:13px"></i><span style="font-size:11px">Donor Privacy</span></div>
       <div class="nav-item" onclick="showPage('assistant');setFw('State Charity Registration')"><i class="ti ti-map-pin" style="font-size:13px"></i><span style="font-size:11px">Charity Registration</span></div>
+
+      <div class="nav-section">System</div>
+      <div class="nav-item" onclick="showPage('settings')"><i class="ti ti-settings"></i>Settings</div>
     </div>
 
     <div class="content">
@@ -651,11 +663,50 @@ select{width:auto}
         </div>
       </div>
 
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Settings</div>
+            <div class="page-sub">Organization configuration · Progress auto-saved to this browser</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-building"></i>Organization</div>
+            <div class="settings-row">
+              <div class="settings-label">Organization Name</div>
+              <input id="set-orgname" class="settings-input" type="text" placeholder="My Church / Nonprofit" oninput="saveSettings()"/>
+            </div>
+            <div class="settings-row">
+              <div class="settings-label">My Role / Title (shown in header)</div>
+              <input id="set-role" class="settings-input" type="text" placeholder="Board Secretary · Admin" oninput="saveSettings()"/>
+            </div>
+            <div class="settings-row">
+              <div class="settings-label">Audit Target Date</div>
+              <input id="set-auditdate" class="settings-input" type="date" oninput="saveSettings()"/>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:3px">Appears on Dashboard · Compliance Overview</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-database"></i>Data Management</div>
+            <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:6px">Your checklist progress, evidence references, and notes are automatically saved to this browser's local storage. Progress persists across page refreshes.</p>
+            <p style="font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-bottom:16px">Export a PDF snapshot (Ctrl/Cmd+P → Save as PDF) before resetting data.</p>
+            <button class="btn btn-danger" onclick="resetAll()"><i class="ti ti-trash"></i>Reset All Checklist Data</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
+<div class="save-toast" id="save-toast"><i class="ti ti-check" style="font-size:13px"></i>Saved</div>
+
 <script>
+const LS_KEY='shepherd_grc_v1';
+let settings={orgName:'',role:'Board Secretary · Admin',auditDate:''};
+
 const AUDIT_AREAS=[
   {id:"irs",label:"IRS 501(c)(3) Compliance",icon:"ti-building-bank",color:"#3C3489",bg:"#EEEDFE",items:[
     {id:"irs1",text:"Form 990 filed on time for current fiscal year",weight:3,evidence:"",status:"not_started",notes:""},
@@ -710,6 +761,38 @@ const stCol=v=>STATUS_OPT.find(s=>s.v===v)?.col||"#888";
 const stLbl=v=>STATUS_OPT.find(s=>s.v===v)?.label||v;
 
 let areas=JSON.parse(JSON.stringify(AUDIT_AREAS));
+
+function loadData(){
+  try{
+    const d=JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+    if(d.settings)Object.assign(settings,d.settings);
+    if(d.areas)d.areas.forEach(sa=>{
+      const a=areas.find(x=>x.id===sa.id);if(!a)return;
+      (sa.items||[]).forEach(si=>{
+        const it=a.items.find(x=>x.id===si.id);if(!it)return;
+        if(si.status)it.status=si.status;
+        if(si.evidence!==undefined)it.evidence=si.evidence;
+        if(si.notes!==undefined)it.notes=si.notes;
+      });
+    });
+  }catch(e){}
+}
+let _saveTimer=null;
+function saveData(){
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    try{
+      localStorage.setItem(LS_KEY,JSON.stringify({
+        settings,
+        areas:areas.map(a=>({id:a.id,items:a.items.map(it=>({id:it.id,status:it.status,evidence:it.evidence||'',notes:it.notes||''}))}))
+      }));
+      const t=document.getElementById('save-toast');
+      if(t){t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800);}
+    }catch(e){}
+  },350);
+}
+loadData();
+
 let activeArea=areas[0].id;
 let gapFilter={weight:0,areaId:null};
 
@@ -747,11 +830,24 @@ function updateAllDisplays(){
   const readiness=score>=80?"Audit ready":score>=60?"Needs attention":"Not ready";
   const rcolor=score>=80?"#27500A":score>=60?"#633806":"#791F1F";
 
+  const tr=document.getElementById("topbar-role");if(tr)tr.textContent=settings.role||"Admin";
+
   const ds=document.getElementById("dash-score");if(ds){ds.textContent=score+"%";ds.style.color=rcolor}
   const dr=document.getElementById("dash-readiness");if(dr){dr.textContent=readiness;dr.style.color=rcolor}
   const dc=document.getElementById("dash-complete");if(dc)dc.textContent=complete;
   const dt=document.getElementById("dash-total");if(dt)dt.textContent="of "+allItems.length+" total";
   const dg=document.getElementById("dash-gaps");if(dg)dg.textContent=notstarted+inprog;
+  const dd=document.getElementById("dash-date");
+  if(dd){
+    if(settings.auditDate){
+      const d=new Date(settings.auditDate+'T00:00:00');
+      const now=new Date();now.setHours(0,0,0,0);
+      const diff=Math.ceil((d-now)/(1000*60*60*24));
+      dd.textContent=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      dd.style.color=diff<30?"#E24B4A":diff<90?"#BA7517":"#639922";
+      dd.style.fontSize="14px";
+    }else{dd.textContent="Not set";dd.style.color="var(--text3)";dd.style.fontSize="18px";}
+  }
 
   areas.forEach(a=>{
     const s=areaScore(a);const col=progressColor(s);
@@ -906,12 +1002,14 @@ function toggleItem(areaId,itemId){
   const a=areas.find(x=>x.id===areaId);if(!a)return;
   const it=a.items.find(x=>x.id===itemId);if(!it)return;
   it.status=it.status==="complete"?"not_started":"complete";
+  saveData();
   updateAllDisplays();
 }
 function updateItem(areaId,itemId,field,val){
   const a=areas.find(x=>x.id===areaId);if(!a)return;
   const it=a.items.find(x=>x.id===itemId);if(!it)return;
   it[field]=val;
+  saveData();
   if(field==="status")updateAllDisplays();
 }
 
@@ -922,6 +1020,25 @@ function showPage(id){
   document.querySelectorAll(".nav-item").forEach(n=>{if(n.getAttribute("onclick")&&n.getAttribute("onclick").includes("'"+id+"'"))n.classList.add("active")});
   if(id==="gaps")updateGapTable();
   if(id==="checklist")updateChecklist();
+  if(id==="settings")renderSettings();
+}
+function renderSettings(){
+  const on=document.getElementById("set-orgname");if(on)on.value=settings.orgName||"";
+  const ro=document.getElementById("set-role");if(ro)ro.value=settings.role||"";
+  const ad=document.getElementById("set-auditdate");if(ad)ad.value=settings.auditDate||"";
+}
+function saveSettings(){
+  settings.orgName=(document.getElementById("set-orgname")||{}).value||"";
+  settings.role=(document.getElementById("set-role")||{}).value||"Board Secretary · Admin";
+  settings.auditDate=(document.getElementById("set-auditdate")||{}).value||"";
+  saveData();
+  updateAllDisplays();
+}
+function resetAll(){
+  if(!confirm("Reset all checklist progress? Evidence references and notes will also be cleared. This cannot be undone."))return;
+  areas=JSON.parse(JSON.stringify(AUDIT_AREAS));
+  saveData();
+  updateAllDisplays();
 }
 
 function setFw(fw){const sel=document.getElementById("fw-selector");if(sel){for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===fw||sel.options[i].text===fw){sel.selectedIndex=i;break;}}}}
